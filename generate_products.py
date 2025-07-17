@@ -36,7 +36,8 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             print(f"⚠️  Пропущен '{name}' — папка '{folder_path}' не найдена.")
             continue
 
-        images = [f for f in sorted(os.listdir(folder_path)) if os.path.splitext(f)[1].lower() in valid_exts]
+        images = [f for f in sorted(os.listdir(folder_path))
+                  if os.path.isfile(os.path.join(folder_path, f)) and os.path.splitext(f)[1].lower() in valid_exts]
         if not images:
             print(f"⚠️  Пропущен '{name}' — нет изображений.")
             continue
