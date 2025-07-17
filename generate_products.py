@@ -131,7 +131,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
 with open(html_path, "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Все товары из CSV добавлены в wear.html")
+print("✅ Все товары из CSV добавлены в instock.html")
 import sys
 
 # === Установка рабочей директории (если скрипт запущен не из корня репозитория) ===
