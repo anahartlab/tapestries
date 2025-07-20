@@ -1,6 +1,11 @@
 import os
 import csv
 
+# === Проверка наличия placeholder.jpg ===
+placeholder_path = os.path.join("images", "placeholder.jpg")
+if not os.path.isfile(placeholder_path):
+    print(f"⚠️  Внимание: отсутствует файл-заглушка '{placeholder_path}' для ленивой загрузки изображений.")
+
 # === Параметры ===
 csv_path = "tapestriesCatalog_with_SEO.csv"
 html_path = "instock.html"
@@ -15,6 +20,20 @@ if not os.path.exists(html_path):
 # === Читаем текущий HTML ===
 with open(html_path, "r", encoding="utf-8") as f:
     html_content = f.read()
+
+# Вставка lazyload.js если ещё не подключён
+if "vanilla-lazyload" not in html_content:
+    head_index = html_content.lower().find("</head>")
+    if head_index != -1:
+        lazy_script = '''
+<script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.min.js"></script>
+<script>
+  var lazyLoadInstance = new LazyLoad({
+    elements_selector: ".lazy"
+  });
+</script>
+'''
+        html_content = html_content[:head_index] + lazy_script + html_content[head_index:]
 
 insert_index = html_content.lower().find("<footer")
 if insert_index == -1:
@@ -67,7 +86,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             item_div = f'''\
                           <div class="{active_class} u-carousel-item u-gallery-item u-carousel-item-{i+1}" data-image-width="960" data-image-height="1280">
                             <div class="u-back-slide">
-                              <img class="u-back-image u-expanded" src="images/{name}/{img_name}">
+                              <img class="u-back-image u-expanded lazy" data-src="images/{name}/{img_name}" loading="lazy" src="images/placeholder.jpg">
                             </div>
                             <div class="u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}"></div>
                             <style data-mode="XL"></style>
