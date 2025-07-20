@@ -65,12 +65,11 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
   </section>
   """
 
-    nav_insert_index = html_content.lower().find("<body")
-    if nav_insert_index != -1:
-        body_end = html_content.find(">", nav_insert_index)
-        html_content = html_content[:body_end + 1] + nav_section + "\n" + html_content[body_end + 1:]
+    header_end = html_content.lower().find("</header>")
+    if header_end != -1:
+        html_content = html_content[:header_end + len("</header>")] + nav_section + "\n" + html_content[header_end + len("</header>"):]
     else:
-        print("⚠️  Не найден <body> для вставки навигации.")
+        print("⚠️  Не найден </header> для вставки навигации.")
 
     for row in reader:
         name = row["Name"].strip()
@@ -81,7 +80,8 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
         seo_keywords = row.get("SEO Keywords", "").strip()
         price = row["Price"].strip()
         stock = row["Stock"].strip()
-        folder_path = os.path.join(images_dir, name)
+        stock = stock.replace("MOSCOW", "в Москве").replace("SAINT-PITER", "в Санкт-Петербурге").replace("CHUVASHIA", "в Чувашии")
+        folder_path = os.path.join(images_dir, name.strip())
 
         if not os.path.isdir(folder_path):
             print(f"⚠️  Пропущен '{name}' — папка '{folder_path}' не найдена.")
