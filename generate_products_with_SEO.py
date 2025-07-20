@@ -30,6 +30,13 @@ if insert_index == -1:
 with open(csv_path, newline="", encoding="utf-8") as csvfile:
     reader = list(csv.DictReader(csvfile))
 
+    # Удаление существующего блока навигации
+    nav_start = html_content.find('<section style="max-width: 900px; margin: 20px auto;" id="tapestries-nav">')
+    if nav_start != -1:
+        nav_end = html_content.find('</section>', nav_start)
+        if nav_end != -1:
+            html_content = html_content[:nav_start] + html_content[nav_end + len('</section>'):]
+
     # === Генерация навигационного блока ===
     nav_links = []
     for row in reader:
