@@ -21,20 +21,6 @@ if not os.path.exists(html_path):
 with open(html_path, "r", encoding="utf-8") as f:
     html_content = f.read()
 
-# Вставка lazyload.js если ещё не подключён
-if "vanilla-lazyload" not in html_content:
-    head_index = html_content.lower().find("</head>")
-    if head_index != -1:
-        lazy_script = '''
-<script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.min.js"></script>
-<script>
-  var lazyLoadInstance = new LazyLoad({
-    elements_selector: ".lazy"
-  });
-</script>
-'''
-        html_content = html_content[:head_index] + lazy_script + html_content[head_index:]
-
 insert_index = html_content.lower().find("<footer")
 if insert_index == -1:
     print("❌ Не найден <footer> в WEAR.html")
@@ -48,9 +34,9 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
     nav_links = []
     for row in reader:
         name = row["Name"].strip()
-        id_attr = name.strip().replace(" ", "_").replace('"', '').replace("'", "").upper()
+        id_attr = name.strip()
         nav_links.append((id_attr, name))
-    nav_items = ' | \n      '.join([f'<a href="#{id_}">{name}</a>' for id_, name in nav_links])
+    nav_items = ' | \n      '.join([f'<a href="#{name}">{name}</a>' for _, name in nav_links])
     nav_section = f"""
   <section style="max-width: 900px; margin: 20px auto;" id="tapestries-nav">
     <details open>
@@ -81,6 +67,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
         price = row["Price"].strip()
         stock = row["Stock"].strip()
         stock = stock.replace("MOSCOW", "в Москве").replace("SAINT-PITER", "в Санкт-Петербурге").replace("CHUVASHIA", "в Чувашии")
+        stock = stock.replace("в в", "в ").replace("шт.", "").strip()
         folder_path = os.path.join(images_dir, name.strip())
 
         if not os.path.isdir(folder_path):
@@ -115,7 +102,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             item_div = f'''\
                           <div class="{active_class} u-carousel-item u-gallery-item u-carousel-item-{i+1}" data-image-width="960" data-image-height="1280">
                             <div class="u-back-slide">
-                              <img class="u-back-image u-expanded lazy" data-src="images/{name}/{img_name}" loading="lazy" src="images/placeholder.jpg">
+                              <img class="u-back-image u-expanded" src="images/{name}/{img_name}">
                             </div>
                             <div class="u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}"></div>
                             <style data-mode="XL"></style>
@@ -166,7 +153,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                       <h3 class="u-align-center u-text u-text-1">{title}</h3>
                       <p class="u-align-left u-text u-text-2">{description}</p>
                       <h3 class="u-align-center-md u-align-center-sm u-align-center-xs u-align-left-lg u-align-left-xl u-text u-text-default-lg u-text-default-xl u-text-3">{price} ₽</h3>
-                      <p class="u-align-center u-text u-text-availability">В наличии {stock} шт.</p>
+                      <p class="u-align-center u-text u-text-availability">В наличии {stock}</p>
                       <div class="u-align-center">
                         <a href="https://donate.stream/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Оплатить</a>
                       </div>
