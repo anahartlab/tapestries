@@ -42,7 +42,36 @@ if insert_index == -1:
 
 # === Читаем CSV ===
 with open(csv_path, newline="", encoding="utf-8") as csvfile:
-    reader = csv.DictReader(csvfile)
+    reader = list(csv.DictReader(csvfile))
+
+    # === Генерация навигационного блока ===
+    nav_links = []
+    for row in reader:
+        name = row["Name"].strip()
+        id_attr = name.strip().replace(" ", "_").replace('"', '').replace("'", "").upper()
+        nav_links.append((id_attr, name))
+    nav_items = ' | \n      '.join([f'<a href="#{id_}">{name}</a>' for id_, name in nav_links])
+    nav_section = f"""
+  <section style="max-width: 900px; margin: 20px auto;" id="tapestries-nav">
+    <details open>
+      <summary style="font-size: 1.3rem; font-weight: bold; cursor: pointer; padding: 10px 0;">
+        🧵 Навигация по флуоресцентным полотнам
+      </summary>
+      <nav id="tapestries-nav" style="text-align: center; margin-top: 10px;">
+        <!-- tapestries-nav-insert-point -->
+        {nav_items}
+      </nav>
+    </details>
+  </section>
+  """
+
+    nav_insert_index = html_content.lower().find("<body")
+    if nav_insert_index != -1:
+        body_end = html_content.find(">", nav_insert_index)
+        html_content = html_content[:body_end + 1] + nav_section + "\n" + html_content[body_end + 1:]
+    else:
+        print("⚠️  Не найден <body> для вставки навигации.")
+
     for row in reader:
         name = row["Name"].strip()
         title = row["Title"].strip()
