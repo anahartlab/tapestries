@@ -141,7 +141,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             carousel_items += item_div + "\n"
 
         stock_html = stock.replace("☀️", "<br>☀️")
-        description_html = f"{title}<br><br>{description}<br><br>В наличии {stock_html}<br><br>Доставка 450р за весь заказ"
+        description_html = f"{title}<br><br>{description}<br><br>В наличии {stock_html}<br><br>Доставка 450р."
 
         block = f"""
     <section class="u-clearfix u-section-16" id="{name}">
