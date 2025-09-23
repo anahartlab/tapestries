@@ -124,7 +124,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             item_div = f"""                          <div class=\"{active_class} u-carousel-item u-gallery-item u-carousel-item-{i+1}\" data-image-width=\"960\" data-image-height=\"1280\">\n                            <div class=\"u-back-slide\">\n                              <img class=\"u-back-image u-expanded\" src=\"images/{name}/{img_name}\">\n                            </div>\n                            <div class=\"u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}\"></div>\n                            <style data-mode=\"XL\"></style>\n                            <style data-mode=\"LG\"></style>\n                            <style data-mode=\"MD\"></style>\n                            <style data-mode=\"SM\"></style>\n                            <style data-mode=\"XS\"></style>\n                          </div>"""
             carousel_items += item_div + "\n"
 
-        description_html = f"{title}<br><br>{description}<br><br>В наличии {stock} шт.<br><br>Доставка 450р за весь заказ"
+        description_html = f"{title}<br><br>{description}<br><br>В наличии <br><br>{stock} шт.<br><br>Доставка 450р за весь заказ"
 
         block = f"""
     <section class="u-clearfix u-section-16" id="{name}">
@@ -159,7 +159,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                   <div class="u-container-style u-layout-cell u-size-60 u-layout-cell-2">
                     <div class="u-container-layout u-container-layout-2">
                       <p class="u-align-left u-text u-text-2">{description_html}</p>
-                      <p class="u-align-center u-text u-text-availability">В наличии {stock} шт.</p>
+                      <p class="u-align-center u-text u-text-availability">{stock} шт.</p>
                       <div class="u-align-center">
                         <a href="https://donate.stream/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Оплатить</a>
                       </div>
