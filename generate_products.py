@@ -115,16 +115,33 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
         carousel_items = ""
 
         for i, img_name in enumerate(images):
+            # индикаторы
             active_class = "u-active" if i == 0 else ""
-            indicator_li = f'<li data-u-target="#{{carousel_id}}" data-u-slide-to="{i}" class="{active_class} u-grey-70 u-shape-circle" style="width: 10px; height: 10px;"></li>'
-            # indicator_li использует literal {{carousel_id}} — поправим ниже заменой, чтобы не ломать f-string
-            indicator_li = indicator_li.replace("{carousel_id}", carousel_id)
-            carousel_indicators += "                          " + indicator_li + "\n"
+            carousel_indicators += (
+                f'                          <li data-u-target="#{carousel_id}" data-u-slide-to="{i}" '
+                f'class="{active_class} u-grey-70 u-shape-circle" style="width: 10px; height: 10px;"></li>\n'
+            )
 
-            item_div = f"""                          <div class=\"{active_class} u-carousel-item u-gallery-item u-carousel-item-{i+1}\" data-image-width=\"960\" data-image-height=\"1280\">\n                            <div class=\"u-back-slide\">\n                              <img class=\"u-back-image u-expanded\" src=\"images/{name}/{img_name}\">\n                            </div>\n                            <div class=\"u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}\"></div>\n                            <style data-mode=\"XL\"></style>\n                            <style data-mode=\"LG\"></style>\n                            <style data-mode=\"MD\"></style>\n                            <style data-mode=\"SM\"></style>\n                            <style data-mode=\"XS\"></style>\n                          </div>"""
+            # слайды
+            slide_class = f"u-carousel-item u-gallery-item u-carousel-item-{i+1}"
+            if i == 0:
+                slide_class = "u-active " + slide_class
+
+            item_div = f"""                          <div class="{slide_class}" data-image-width="960" data-image-height="1280">
+                            <div class="u-back-slide">
+                              <img class="u-back-image u-expanded" src="images/{name}/{img_name}">
+                            </div>
+                            <div class="u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}"></div>
+                            <style data-mode="XL"></style>
+                            <style data-mode="LG"></style>
+                            <style data-mode="MD"></style>
+                            <style data-mode="SM"></style>
+                            <style data-mode="XS"></style>
+                          </div>"""
             carousel_items += item_div + "\n"
 
-        description_html = f"{title}<br><br>{description}<br><br>В наличии <br><br>{stock} шт.<br><br>Доставка 450р за весь заказ"
+        stock_html = stock.replace("☀️", "<br>☀️")
+        description_html = f"{title}<br><br>{description}<br><br>В наличии {stock_html}<br><br>Доставка 450р за весь заказ"
 
         block = f"""
     <section class="u-clearfix u-section-16" id="{name}">
@@ -141,11 +158,11 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
 {carousel_indicators}                        </ol>
                         <div class="u-carousel-inner u-gallery-inner u-gallery-inner-1" role="listbox">
 {carousel_items}                        </div>
-                        <a class="u-absolute-vcenter u-carousel-control u-carousel-control-prev u-grey-70 u-icon-circle u-opacity u-opacity-70 u-spacing-10 u-text-white u-carousel-control-1" href="#{{cid}}" role="button" data-u-slide="prev">
+                        <a class="u-absolute-vcenter u-carousel-control u-carousel-control-prev u-grey-70 u-icon-circle u-opacity u-opacity-70 u-spacing-10 u-text-white u-carousel-control-1" href="#{carousel_id}" role="button" data-u-slide="prev">
                           <span aria-hidden="true">
                             <svg viewBox="0 0 451.847 451.847"><path d="..."/></svg></span><span class="sr-only">Previous</span>
                         </a>
-                        <a class="u-absolute-vcenter u-carousel-control u-carousel-control-next u-grey-70 u-icon-circle u-opacity u-opacity-70 u-spacing-10 u-text-white u-carousel-control-2" href="#{{cid}}" role="button" data-u-slide="next">
+                        <a class="u-absolute-vcenter u-carousel-control u-carousel-control-next u-grey-70 u-icon-circle u-opacity u-opacity-70 u-spacing-10 u-text-white u-carousel-control-2" href="#{carousel_id}" role="button" data-u-slide="next">
                           <span aria-hidden="true">
                             <svg viewBox="0 0 451.846 451.847"><path d="..."/></svg></span><span class="sr-only">Next</span>
                         </a>
@@ -159,7 +176,6 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                   <div class="u-container-style u-layout-cell u-size-60 u-layout-cell-2">
                     <div class="u-container-layout u-container-layout-2">
                       <p class="u-align-left u-text u-text-2">{description_html}</p>
-                      <p class="u-align-center u-text u-text-availability">{stock} шт.</p>
                       <div class="u-align-center">
                         <a href="https://donate.stream/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Оплатить</a>
                       </div>
@@ -172,9 +188,6 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
         </div>
       </div>
     </section>"""
-
-        # Заменим маркер {{cid}} на реальный id (делаем это здесь, чтобы не ломать f-string ранее)
-        block = block.replace("{{cid}}", f"#{carousel_id}")
 
         # === Вставка перед точкой вставки ===
         html_content = (
