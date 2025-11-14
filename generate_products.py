@@ -91,8 +91,11 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
 
         # Создаём безопасный и уникальный ID для секции, связанный с name
         import re, hashlib
-        base_id = re.sub(r'\W+', '_', name)[:24]  # заменяем все не-буквы/цифры на _
-        hash_suffix = hashlib.md5(name.encode('utf-8')).hexdigest()[:8]  # 8 символов хэш
+
+        base_id = re.sub(r"\W+", "_", name)[:24]  # заменяем все не-буквы/цифры на _
+        hash_suffix = hashlib.md5(name.encode("utf-8")).hexdigest()[
+            :8
+        ]  # 8 символов хэш
         section_id = f"{base_id}_{hash_suffix}"
         carousel_id = f"carousel-{base_id}_{hash_suffix}"
 
@@ -133,16 +136,16 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                 slide_class = "u-active " + slide_class
 
             item_div = f"""                          <div class="{slide_class}" data-image-width="960" data-image-height="1280">
-                            <div class="u-back-slide">
-                              <img class="u-back-image u-expanded" src="images/{name}/{img_name}">
-                            </div>
-                            <div class="u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}"></div>
-                            <style data-mode="XL"></style>
-                            <style data-mode="LG"></style>
-                            <style data-mode="MD"></style>
-                            <style data-mode="SM"></style>
-                            <style data-mode="XS"></style>
-                          </div>"""
+                                <div class="u-back-slide">
+                                  <img class="u-back-image u-expanded" src="images/{name}/{img_name}">
+                                </div>
+                                <div class="u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}"></div>
+                                <style data-mode="XL"></style>
+                                <style data-mode="LG"></style>
+                                <style data-mode="MD"></style>
+                                <style data-mode="SM"></style>
+                                <style data-mode="XS"></style>
+                              </div>"""
             carousel_items += item_div + "\n"
 
         stock_html = stock.replace("☀️", "<br>☀️")
@@ -199,6 +202,77 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             html_content[:insert_index] + block + "\n" + html_content[insert_index:]
         )
         insert_index += len(block) + 1  # с учётом добавленного перевода строки
+
+# === Создание навигации по товарам ===
+from bs4 import BeautifulSoup
+
+soup = BeautifulSoup(html_content, "html.parser")
+
+for old_nav in soup.find_all("nav", class_="u-nav"):
+    old_nav.decompose()
+old_menu_btn = soup.find(id="scroll-to-menu")
+if old_menu_btn:
+    old_menu_btn.decompose()
+
+nav = soup.new_tag("nav", **{"class": "u-nav u-unstyled u-center"})
+nav["style"] = "margin:20px 0; display:grid; justify-content:center;"
+ul = soup.new_tag("ul", **{"class": "u-unstyled"})
+ul["style"] = (
+    "list-style:none; padding:0; margin:0 auto; "
+    "display:grid; grid-template-columns: 350px 350px; gap:20px 40px; "
+    "justify-content:center; width:100%; max-width:800px;"
+)
+
+for section in soup.find_all("section", class_="u-clearfix u-section-16"):
+    sec_id = section.get("id")
+    h3 = section.find(["h1", "h2", "h3"])
+    if not h3:
+        continue
+    title = h3.get_text(strip=True)
+    li = soup.new_tag("li")
+    li["style"] = (
+        "display:flex; align-items:center; gap:8px; padding:10px 15px; "
+        "box-sizing:border-box; justify-content:flex-start; width:100%; text-align:left; "
+        "background:#f9f9f9; border-radius:8px; transition:0.3s;"
+    )
+    a = soup.new_tag("a", href=f"#{sec_id}")
+    a["style"] = (
+        "display:flex; align-items:center; text-decoration:none; color:#333; width:100%; text-align:left; transition:0.3s;"
+    )
+    a.string = title
+    li.append(a)
+    ul.append(li)
+nav.append(ul)
+
+header = soup.find("header")
+if header:
+    header.insert_after(nav)
+else:
+    body = soup.find("body")
+    if body:
+        body.insert(0, nav)
+
+# Кнопка "В меню"
+menu_btn = soup.new_tag("button", id="scroll-to-menu")
+menu_btn.string = "В меню"
+menu_btn["style"] = (
+    "position:fixed; bottom:20px; right:20px; padding:10px 15px; "
+    "background:#007BFF; color:#fff; border:none; border-radius:5px; cursor:pointer; "
+    "box-shadow:0 4px 6px rgba(0,0,0,0.3); z-index:999;"
+)
+soup.body.append(menu_btn)
+
+# Плавный скролл
+script_scroll = soup.new_tag("script")
+script_scroll.string = """
+document.getElementById("scroll-to-menu").addEventListener("click", function() {
+    const nav = document.querySelector("nav.u-nav");
+    if(nav){ nav.scrollIntoView({behavior:'smooth'}); }
+});
+"""
+soup.body.append(script_scroll)
+
+html_content = str(soup)
 
 # === Сохраняем результат ===
 with open(html_path, "w", encoding="utf-8") as f:
