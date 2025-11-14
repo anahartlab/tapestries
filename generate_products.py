@@ -89,15 +89,10 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             print(f"⚠️  Пропущен '{name}' — нет изображений.")
             continue
 
-        # Создаём безопасный и уникальный ID для секции, связанный с name
-        import re, hashlib
-
-        base_id = re.sub(r"\W+", "_", name)[:24]  # заменяем все не-буквы/цифры на _
-        hash_suffix = hashlib.md5(name.encode("utf-8")).hexdigest()[
-            :8
-        ]  # 8 символов хэш
-        section_id = f"{base_id}_{hash_suffix}"
-        carousel_id = f"carousel-{base_id}_{hash_suffix}"
+        # Создаём ID, соответствующий Name (независимо от регистра)
+        import re
+        section_id = re.sub(r"\W+", "_", name.strip().lower())
+        carousel_id = f"carousel-{section_id}"
 
         # Удаление существующего блока (если есть)
         start_tag = f'<section class="u-clearfix u-section-16" id="{section_id}">'
