@@ -62,12 +62,44 @@ for section in soup.find_all("section", class_="u-clearfix u-section-16"):
     ul.append(li)
 nav.append(ul)
 
-# Вставляем навигацию после header
-header = soup.find("header")
-if header:
-    header.insert_after(nav)
+body = soup.find("body")
+if body:
+    # Вставляем навигацию в начало body
+    body.insert(0, nav)
 
-    # Добавляем фиксированную кнопку "В меню" внизу справа
+    # Добавляем hover-эффекты и фон для мини-каталога
+    style_tag = soup.new_tag("style")
+    style_tag.string = """
+    nav.u-nav ul li {
+        background-color:#f9f9f9;
+        border-radius:8px;
+        transition: background-color 0.3s, color 0.3s;
+        padding:10px 15px;
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+    nav.u-nav ul li:hover {
+        background-color:#e0e0e0;
+    }
+    nav.u-nav ul li:hover a {
+        color:#222;
+    }
+    nav.u-nav ul a {
+        text-decoration:none;
+        color:#333;
+        display:flex;
+        align-items:center;
+        width:100%;
+        text-align:left;
+    }
+    @media (max-width: 600px) {
+        nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }
+    }
+    """
+    soup.head.append(style_tag) if soup.head else soup.insert(0, style_tag)
+
+    # Добавляем фиксированную кнопку "В меню"
     menu_btn = soup.new_tag("button", id="scroll-to-menu")
     menu_btn.string = "В меню"
     menu_btn["style"] = (
@@ -75,9 +107,9 @@ if header:
         "background:#007BFF; color:#fff; border:none; border-radius:5px; cursor:pointer; "
         "box-shadow:0 4px 6px rgba(0,0,0,0.3); z-index:999;"
     )
-    soup.body.append(menu_btn)
+    body.append(menu_btn)
 
-    # Добавляем скрипт для плавного скролла к навигации
+    # Плавный скролл к навигации
     script_scroll = soup.new_tag("script")
     script_scroll.string = """
     document.getElementById("scroll-to-menu").addEventListener("click", function() {
@@ -85,7 +117,7 @@ if header:
         if(nav){ nav.scrollIntoView({behavior:'smooth'}); }
     });
     """
-    soup.body.append(script_scroll)
+    body.append(script_scroll)
 
 # Сохраняем HTML
 with open(html_file, "w", encoding="utf-8") as f:

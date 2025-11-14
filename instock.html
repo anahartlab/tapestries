@@ -31,7 +31,34 @@
       elements_selector: ".lazy"
     });
   </script>
-<style>nav.u-nav ul li { transition: background-color 0.3s, color 0.3s; }nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li { transition: background-color 0.3s, color 0.3s; }nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li { transition: background-color 0.3s, color 0.3s; }nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style></head>
+<style>nav.u-nav ul li { transition: background-color 0.3s, color 0.3s; }nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li { transition: background-color 0.3s, color 0.3s; }nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li { transition: background-color 0.3s, color 0.3s; }nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style><style>
+    nav.u-nav ul li {
+        background-color:#f9f9f9;
+        border-radius:8px;
+        transition: background-color 0.3s, color 0.3s;
+        padding:10px 15px;
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+    nav.u-nav ul li:hover {
+        background-color:#e0e0e0;
+    }
+    nav.u-nav ul li:hover a {
+        color:#222;
+    }
+    nav.u-nav ul a {
+        text-decoration:none;
+        color:#333;
+        display:flex;
+        align-items:center;
+        width:100%;
+        text-align:left;
+    }
+    @media (max-width: 600px) {
+        nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }
+    }
+    </style><style>nav.u-nav ul li:hover { background-color: #e0e0e0; }nav.u-nav ul li:hover a { color: #222; }@media (max-width: 600px) {  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }}</style></head>
 <body class="u-body u-xl-mode" data-include-products="true" data-lang="ru" data-path-to-root="./">
 <header class="u-clearfix u-grey-80 u-header u-header" id="header">
 <div class="u-clearfix u-sheet u-valign-middle-lg u-valign-middle-md u-valign-middle-sm u-sheet-1">
@@ -4610,6 +4637,11 @@
 </div>
 </footer>
 <script>
+    document.getElementById("scroll-to-menu").addEventListener("click", function() {
+        const nav = document.querySelector("nav.u-nav");
+        if(nav){ nav.scrollIntoView({behavior:'smooth'}); }
+    });
+    </script><script>
     document.getElementById("scroll-to-menu").addEventListener("click", function() {
         const nav = document.querySelector("nav.u-nav");
         if(nav){ nav.scrollIntoView({behavior:'smooth'}); }
