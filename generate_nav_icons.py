@@ -26,7 +26,7 @@ ul["style"] = (
 )
 nav.append(ul)
 
-li_style = "display:flex; align-items:center; gap:12px; padding:10px 15px; box-sizing:border-box; justify-content:flex-start; width:100%; text-align:left;"
+li_style = "display:flex; align-items:center; gap:8px; padding:10px 15px; box-sizing:border-box; justify-content:flex-start; width:100%; text-align:left; background-color:#f9f9f9; border-radius:8px; transition: background-color 0.3s, color 0.3s;"
 
 for section in soup.find_all("section", class_="u-clearfix u-section-16"):
     sec_id = section.get("id")
@@ -40,10 +40,12 @@ for section in soup.find_all("section", class_="u-clearfix u-section-16"):
     folder_path = os.path.join(images_root, folder_name)
     icon_src = None
     if os.path.exists(folder_path):
+        # Сначала ищем main* изображения
         for file_name in os.listdir(folder_path):
             if file_name.lower().startswith("main") and file_name.lower().endswith((".jpg", ".jpeg", ".png")):
                 icon_src = f"images/{folder_name}/{file_name}"
                 break
+        # Если не нашли main*, берем первое изображение
         if not icon_src:
             for file_name in os.listdir(folder_path):
                 if file_name.lower().endswith((".jpg", ".jpeg", ".png")):
@@ -51,9 +53,7 @@ for section in soup.find_all("section", class_="u-clearfix u-section-16"):
                     break
 
     li = soup.new_tag("li")
-    li["style"] = (
-        li_style + " background-color:#f9f9f9; border-radius:8px; transition:0.3s;"
-    )
+    li["style"] = li_style
     a = soup.new_tag("a", href=f"#{sec_id}")
     a["style"] = (
         "display:flex; align-items:center; text-decoration:none; color:#333; width:100%; "
@@ -61,7 +61,7 @@ for section in soup.find_all("section", class_="u-clearfix u-section-16"):
     )
     if icon_src:
         img = soup.new_tag("img", src=icon_src)
-        img["style"] = "width:50px; height:50px; object-fit:cover; border-radius:5px; margin-right:8px;"
+        img["style"] = "width:50px; height:50px; object-fit:cover; border-radius:5px;"
         a.append(img)
     span = soup.new_tag("span")
     span.string = title
@@ -75,14 +75,16 @@ if header:
 
 style_tag = soup.new_tag("style")
 style_tag.string = (
-    "nav.u-nav ul li { transition: background-color 0.3s, color 0.3s; }"
     "nav.u-nav ul li:hover { background-color: #e0e0e0; }"
     "nav.u-nav ul li:hover a { color: #222; }"
     "@media (max-width: 600px) {"
     "  nav.u-nav ul { grid-template-columns: 1fr !important; max-width: 100% !important; }"
     "}"
 )
-soup.head.append(style_tag) if soup.head else soup.insert(0, style_tag)
+if soup.head:
+    soup.head.append(style_tag)
+else:
+    soup.insert(0, style_tag)
 
 # Сохраняем HTML
 with open(html_file, "w", encoding="utf-8") as f:
