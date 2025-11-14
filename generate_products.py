@@ -89,8 +89,15 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             print(f"⚠️  Пропущен '{name}' — нет изображений.")
             continue
 
+        # Создаём безопасный и уникальный ID для секции, связанный с name
+        import re, hashlib
+        base_id = re.sub(r'\W+', '_', name)[:24]  # заменяем все не-буквы/цифры на _
+        hash_suffix = hashlib.md5(name.encode('utf-8')).hexdigest()[:8]  # 8 символов хэш
+        section_id = f"{base_id}_{hash_suffix}"
+        carousel_id = f"carousel-{base_id}_{hash_suffix}"
+
         # Удаление существующего блока (если есть)
-        start_tag = f'<section class="u-clearfix u-section-16" id="{name}">'
+        start_tag = f'<section class="u-clearfix u-section-16" id="{section_id}">'
         start_pos = html_content.find(start_tag)
         if start_pos != -1:
             end_pos = html_content.find("</section>", start_pos)
@@ -109,8 +116,6 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                     insert_index = bpos if bpos != -1 else len(html_content)
 
         # Формируем карусель
-        safe_id = name.replace(" ", "_")[:32]
-        carousel_id = f"carousel-{safe_id}"
         carousel_indicators = ""
         carousel_items = ""
 
@@ -144,7 +149,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
         description_html = f"{title}<br><br>{description}<br><br>В наличии {stock_html}<br><br>Доставка 450р."
 
         block = f"""
-    <section class="u-clearfix u-section-16" id="{name}">
+    <section class="u-clearfix u-section-16" id="{section_id}">
       <div class="u-clearfix u-sheet u-valign-middle-md u-valign-top-lg u-valign-top-xl u-sheet-1">
         <div class="data-layout-selected u-clearfix u-expanded-width u-layout-wrap u-layout-wrap-1">
           <div class="u-layout">
