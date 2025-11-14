@@ -1,153 +1,134 @@
-# -*- coding: utf-8 -*-
 import os
 import csv
-import random
 import sys
+import random
+from bs4 import BeautifulSoup
 
-# === Устанавливаем рабочую директорию — скрипт всегда будет работать из папки с файлом ===
 repo_root = os.path.dirname(os.path.abspath(__file__))
 os.chdir(repo_root)
 
 # === Параметры ===
-csv_path = "tapestriesCatalog.csv"
-html_path = "instock.html"
+csv_path = "products.csv"
+html_path = "main.html"
 images_dir = "images"
 valid_exts = {".jpg", ".jpeg", ".png"}
 
-# === Проверки существования файлов ===
-if not os.path.exists(csv_path):
-    print(f"❌ CSV-файл '{csv_path}' не найден в {repo_root}")
-    sys.exit(1)
+# === Проверка HTML-файла ===
 if not os.path.exists(html_path):
-    print(f"❌ HTML-файл '{html_path}' не найден в {repo_root}")
-    sys.exit(1)
+    print(f"❌ HTML-файл '{html_path}' не найден.")
+    exit()
 
 # === Читаем текущий HTML ===
 with open(html_path, "r", encoding="utf-8") as f:
     html_content = f.read()
 
-lower = html_content.lower()
-header_start = lower.find("<header")
-header_end = -1
-if header_start != -1:
-    header_end = lower.find("</header>", header_start)
-    if header_end != -1:
-        header_end += len("</header>")
+# === Парсим HTML для удаления навигации ===
+soup = BeautifulSoup(html_content, "html.parser")
 
-footer_start = lower.find("<footer")
-if footer_start == -1:
-    footer_start = lower.find("</body>")
+# === Удаляем все существующие секции товаров ===
+start_tag_prefix = '<section class="u-clearfix u-section-16"'
+end_tag = '</section>'
+while True:
+    start_pos = html_content.find(start_tag_prefix)
+    if start_pos == -1:
+        break
+    end_pos = html_content.find(end_tag, start_pos)
+    if end_pos == -1:
+        break
+    html_content = html_content[:start_pos] + html_content[end_pos + len(end_tag):]
 
-# Определим точку вставки и: если найдены и header и footer — удалим содержимое между ними (оставим header и footer)
-insert_index = None
-if header_end != -1 and footer_start != -1 and header_end < footer_start:
-    # удаляем только содержимое между концом header и началом footer (оставляем header и footer)
-    html_content = html_content[:header_end] + html_content[footer_start:]
-    insert_index = header_end
-else:
-    # fallback: вставляем перед <footer> если он есть, иначе перед </body>, иначе в конец файла
-    lower = html_content.lower()
-    fpos = lower.find("<footer")
-    if fpos != -1:
-        insert_index = fpos
-    else:
-        bpos = lower.find("</body>")
-        insert_index = bpos if bpos != -1 else len(html_content)
+# === Удаляем все теги <nav> с классом "u-nav" ===
+for old_nav in soup.find_all("nav", class_="u-nav"):
+    old_nav.decompose()
 
-# === Читаем CSV и генерируем секции ===
+# === Удаляем кнопки с id="scroll-to-menu" ===
+for scroll_btn in soup.find_all(id="scroll-to-menu"):
+    scroll_btn.decompose()
+
+# === Обновляем html_content после удаления навигации ===
+html_content = str(soup)
+
+insert_index = html_content.lower().find("<footer")
+if insert_index == -1:
+    print("❌ Не найден <footer> в main.html")
+    exit()
+
+# === Читаем CSV ===
 with open(csv_path, newline="", encoding="utf-8") as csvfile:
-    reader = csv.DictReader(csvfile)
-
-    # Проверяем нужные столбцы
-    required = ["Name", "Title", "Description", "Stock"]
-    for col in required:
-        if col not in reader.fieldnames:
-            print(f"❌ В CSV нет столбца '{col}'. Найдены столбцы: {reader.fieldnames}")
-            sys.exit(1)
+    reader = csv.DictReader(csvfile, delimiter=',')
+    # normalize headers to lowercase
+    reader.fieldnames = [h.strip().lower() for h in reader.fieldnames]
 
     for row in reader:
-        name = row["Name"].strip()
-        title = row["Title"].strip()
-        description = row["Description"].strip()
-        stock = row["Stock"].strip()
+        # normalize each key to lowercase
+        row = {k.strip().lower(): (v.strip() if v is not None else "") for k, v in row.items()}
+
+        name = row.get("name", "")
+        title = row.get("title", "")
+        description = row.get("description", "")
+        stock = row.get("stock", "")
+
+        if not name:
+            continue
+
         folder_path = os.path.join(images_dir, name)
 
         if not os.path.isdir(folder_path):
             print(f"⚠️  Пропущен '{name}' — папка '{folder_path}' не найдена.")
             continue
 
-        images = [
-            f
-            for f in sorted(os.listdir(folder_path))
-            if os.path.isfile(os.path.join(folder_path, f))
-            and os.path.splitext(f)[1].lower() in valid_exts
-        ]
-
-        if images:
-            images = random.sample(images, min(5, len(images)))
-        else:
+        all_images = [f for f in sorted(os.listdir(folder_path))
+                      if os.path.isfile(os.path.join(folder_path, f)) and os.path.splitext(f)[1].lower() in valid_exts]
+        if not all_images:
             print(f"⚠️  Пропущен '{name}' — нет изображений.")
             continue
 
-        # Создаём ID, соответствующий Name (независимо от регистра)
-        import re
-        section_id = re.sub(r"\W+", "_", name.strip().lower())
-        carousel_id = f"carousel-{section_id}"
+        if len(all_images) > 5:
+            images = random.sample(all_images, 5)
+        else:
+            images = all_images
 
-        # Удаление существующего блока (если есть)
-        start_tag = f'<section class="u-clearfix u-section-16" id="{section_id}">'
+        # Удаление существующего блока по id="{name}"
+        start_tag = f'<section class="u-clearfix u-section-16" id="{name}">'
         start_pos = html_content.find(start_tag)
         if start_pos != -1:
-            end_pos = html_content.find("</section>", start_pos)
+            end_pos = html_content.find(end_tag, start_pos)
             if end_pos != -1:
-                html_content = (
-                    html_content[:start_pos]
-                    + html_content[end_pos + len("</section>") :]
-                )
-                # после удаления пересчитываем точку вставки
-                lower = html_content.lower()
-                fpos = lower.find("<footer")
-                if fpos != -1:
-                    insert_index = fpos
-                else:
-                    bpos = lower.find("</body>")
-                    insert_index = bpos if bpos != -1 else len(html_content)
+                html_content = html_content[:start_pos] + html_content[end_pos + len(end_tag):]
+                insert_index = html_content.lower().find("<footer")
 
-        # Формируем карусель
+        carousel_id = f"carousel-{name[:8]}"
         carousel_indicators = ""
         carousel_items = ""
 
         for i, img_name in enumerate(images):
-            # индикаторы
             active_class = "u-active" if i == 0 else ""
-            carousel_indicators += (
-                f'                          <li data-u-target="#{carousel_id}" data-u-slide-to="{i}" '
-                f'class="{active_class} u-grey-70 u-shape-circle" style="width: 10px; height: 10px;"></li>\n'
-            )
+            indicator_li = f'<li data-u-target="#{carousel_id}" data-u-slide-to="{i}" class="{active_class} u-grey-70 u-shape-circle" style="width: 10px; height: 10px;"></li>'
+            carousel_indicators += "                          " + indicator_li + "\n"
 
-            # слайды
-            slide_class = f"u-carousel-item u-gallery-item u-carousel-item-{i+1}"
-            if i == 0:
-                slide_class = "u-active " + slide_class
-
-            item_div = f"""                          <div class="{slide_class}" data-image-width="960" data-image-height="1280">
-                                <div class="u-back-slide">
-                                  <img class="u-back-image u-expanded" src="images/{name}/{img_name}">
-                                </div>
-                                <div class="u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}"></div>
-                                <style data-mode="XL"></style>
-                                <style data-mode="LG"></style>
-                                <style data-mode="MD"></style>
-                                <style data-mode="SM"></style>
-                                <style data-mode="XS"></style>
-                              </div>"""
+            item_div = f'''\
+                          <div class="{active_class} u-carousel-item u-gallery-item u-carousel-item-{i+1}" data-image-width="960" data-image-height="1280">
+                            <div class="u-back-slide">
+                              <img class="u-back-image u-expanded" src="images/{name}/{img_name}">
+                            </div>
+                            <div class="u-align-center u-over-slide u-shading u-valign-bottom u-over-slide-{i+1}"></div>
+                            <style data-mode="XL"></style>
+                            <style data-mode="LG"></style>
+                            <style data-mode="MD"></style>
+                            <style data-mode="SM"></style>
+                            <style data-mode="XS"></style>
+                          </div>'''
             carousel_items += item_div + "\n"
 
-        stock_html = stock.replace("☀️", "<br>☀️")
-        description_html = f"{title}<br><br>{description}<br><br>В наличии {stock_html}<br><br>Доставка 450р."
+        # Форматируем stock с <br> и "☀️"
+        if not stock.strip():
+            stock_html = "РАСПРОДАНО"
+        else:
+            stock_lines = [line.strip() for line in stock.splitlines() if line.strip()]
+            stock_html = "В наличии:<br>" + "<br>".join(f"☀️ {line}" for line in stock_lines) if stock_lines else "В наличии:"
 
         block = f"""
-    <section class="u-clearfix u-section-16" id="{section_id}">
+    <section class="u-clearfix u-section-16" id="{name}">
       <div class="u-clearfix u-sheet u-valign-middle-md u-valign-top-lg u-valign-top-xl u-sheet-1">
         <div class="data-layout-selected u-clearfix u-expanded-width u-layout-wrap u-layout-wrap-1">
           <div class="u-layout">
@@ -177,11 +158,11 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
               <div class="u-size-30">
                 <div class="u-layout-col">
                   <div class="u-container-style u-layout-cell u-size-60 u-layout-cell-2">
-                    <div class="u-container-layout u-container-layout-2">
-                      <p class="u-align-left u-text u-text-2">{description_html}</p>
-                      <div class="u-align-center">
-                        <a href="https://donate.stream/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Оплатить</a>
-                      </div>
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                      <h3 class="u-align-center u-text u-text-1">{title}</h3>
+                      <p class="u-align-left u-text u-text-2" style="display:inline-block; text-align:left; max-width:100%;">{description}</p>
+                      <p class="u-align-center u-text u-text-availability">{stock_html}</p>
+                      <a href="https://donate.stream/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Оплатить</a>
                     </div>
                   </div>
                 </div>
@@ -192,85 +173,18 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
       </div>
     </section>"""
 
-        # === Вставка перед точкой вставки ===
-        html_content = (
-            html_content[:insert_index] + block + "\n" + html_content[insert_index:]
-        )
-        insert_index += len(block) + 1  # с учётом добавленного перевода строки
-
-# === Создание навигации по товарам ===
-from bs4 import BeautifulSoup
-
-soup = BeautifulSoup(html_content, "html.parser")
-
-for old_nav in soup.find_all("nav", class_="u-nav"):
-    old_nav.decompose()
-old_menu_btn = soup.find(id="scroll-to-menu")
-if old_menu_btn:
-    old_menu_btn.decompose()
-
-nav = soup.new_tag("nav", **{"class": "u-nav u-unstyled u-center"})
-nav["style"] = "margin:20px 0; display:grid; justify-content:center;"
-ul = soup.new_tag("ul", **{"class": "u-unstyled"})
-ul["style"] = (
-    "list-style:none; padding:0; margin:0 auto; "
-    "display:grid; grid-template-columns: 350px 350px; gap:20px 40px; "
-    "justify-content:center; width:100%; max-width:800px;"
-)
-
-for section in soup.find_all("section", class_="u-clearfix u-section-16"):
-    sec_id = section.get("id")
-    h3 = section.find(["h1", "h2", "h3"])
-    if not h3:
-        continue
-    title = h3.get_text(strip=True)
-    li = soup.new_tag("li")
-    li["style"] = (
-        "display:flex; align-items:center; gap:8px; padding:10px 15px; "
-        "box-sizing:border-box; justify-content:flex-start; width:100%; text-align:left; "
-        "background:#f9f9f9; border-radius:8px; transition:0.3s;"
-    )
-    a = soup.new_tag("a", href=f"#{sec_id}")
-    a["style"] = (
-        "display:flex; align-items:center; text-decoration:none; color:#333; width:100%; text-align:left; transition:0.3s;"
-    )
-    a.string = title
-    li.append(a)
-    ul.append(li)
-nav.append(ul)
-
-header = soup.find("header")
-if header:
-    header.insert_after(nav)
-else:
-    body = soup.find("body")
-    if body:
-        body.insert(0, nav)
-
-# Кнопка "В меню"
-menu_btn = soup.new_tag("button", id="scroll-to-menu")
-menu_btn.string = "В меню"
-menu_btn["style"] = (
-    "position:fixed; bottom:20px; right:20px; padding:10px 15px; "
-    "background:#007BFF; color:#fff; border:none; border-radius:5px; cursor:pointer; "
-    "box-shadow:0 4px 6px rgba(0,0,0,0.3); z-index:999;"
-)
-soup.body.append(menu_btn)
-
-# Плавный скролл
-script_scroll = soup.new_tag("script")
-script_scroll.string = """
-document.getElementById("scroll-to-menu").addEventListener("click", function() {
-    const nav = document.querySelector("nav.u-nav");
-    if(nav){ nav.scrollIntoView({behavior:'smooth'}); }
-});
-"""
-soup.body.append(script_scroll)
-
-html_content = str(soup)
+        # === Вставка перед <footer> ===
+        html_content = html_content[:insert_index] + block + "\n" + html_content[insert_index:]
+        insert_index += len(block)
 
 # === Сохраняем результат ===
 with open(html_path, "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Все товары из CSV добавлены в instock.html")
+print("✅ Все товары из CSV добавлены в main.html")
+
+import sys
+
+# === Установка рабочей директории (если скрипт запущен не из корня репозитория) ===
+repo_root = os.path.dirname(os.path.abspath(__file__))
+os.chdir(repo_root)
