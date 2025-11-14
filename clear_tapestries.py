@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+import sys
 
 # Путь к файлу HTML
 html_file = "/Users/anahart/GitHub/tapestries/tapestries/instock.html"
@@ -9,6 +10,8 @@ with open(html_file, "r", encoding="utf-8") as f:
 
 # 1️⃣ Удаляем проданные товары
 sections = soup.find_all("section", class_="u-clearfix u-section-16")
+if not sections:
+    print("⚠️ Внимание: не найдено секций с классом 'u-clearfix u-section-16'.")
 for section in sections:
     availability = section.find("p", class_="u-text-availability")
     if availability:
@@ -43,6 +46,8 @@ ul["style"] = (
 )
 for section in soup.find_all("section", class_="u-clearfix u-section-16"):
     sec_id = section.get("id")
+    if not sec_id:
+        continue
     # ищем заголовок внутри секции
     h3 = section.find(["h3", "h2", "h1"])
     if not h3:
