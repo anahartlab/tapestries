@@ -4,7 +4,7 @@ import os
 # Путь к файлу HTML
 html_file = "/Users/anahart/GitHub/tapestries/tapestries/instock.html"
 # Путь к папке с изображениями товаров
-images_root = "/Users/anahart/GitHub/maroc-1/images/"
+images_root = "/Users/anahart/GitHub/tapestries/tapestries/images/"
 
 # Читаем HTML
 with open(html_file, "r", encoding="utf-8") as f:
