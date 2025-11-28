@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # replace_header.py
 import os, re, shutil, datetime
-repo_root = os.path.dirname(os.path.abspath(__file__))
-os.chdir(repo_root)
+
 HTML_DIR = "."  # папка с html (текущая)
 HEADER_FILE = (
     "header.txt"  # файл с новым header (должен содержать <header>...</header>)
