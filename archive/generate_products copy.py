@@ -8,61 +8,62 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 os.chdir(repo_root)
 
 # === Параметры ===
-theway = "fantasy"
-csv_path = f"{theway}.csv"
-html_path = f"{theway}.html"
+csv_path = "products.csv"
+html_path = "main.html"
 images_dir = "images"
 valid_exts = {".jpg", ".jpeg", ".png"}
 
 # === Проверка HTML-файла ===
 if not os.path.exists(html_path):
-    print(f"❌ HTML-файл {html_path} не найден.")
+    print(f"❌ HTML-файл '{html_path}' не найден.")
     exit()
 
 # === Читаем текущий HTML ===
 with open(html_path, "r", encoding="utf-8") as f:
     html_content = f.read()
 
-
 # === Парсим HTML для удаления навигации ===
 soup = BeautifulSoup(html_content, "html.parser")
 
-# === Удаляем весь контент между </header> и <footer> ===
-header_end = html_content.lower().find("</header>")
-footer_start = html_content.lower().find("<footer")
-if header_end != -1 and footer_start != -1:
-    html_content = (
-        html_content[: header_end + len("</header>")] + html_content[footer_start:]
-    )
+# === Удаляем все существующие секции товаров ===
+start_tag_prefix = '<section class="u-clearfix u-section-16"'
+end_tag = '</section>'
+while True:
+    start_pos = html_content.find(start_tag_prefix)
+    if start_pos == -1:
+        break
+    end_pos = html_content.find(end_tag, start_pos)
+    if end_pos == -1:
+        break
+    html_content = html_content[:start_pos] + html_content[end_pos + len(end_tag):]
+
+# === Удаляем все теги <nav> с классом "u-nav" ===
+for old_nav in soup.find_all("nav", class_="u-nav"):
+    old_nav.decompose()
+
+# === Удаляем кнопки с id="scroll-to-menu" ===
+for scroll_btn in soup.find_all(id="scroll-to-menu"):
+    scroll_btn.decompose()
+
+# === Обновляем html_content после удаления навигации ===
+html_content = str(soup)
 
 insert_index = html_content.lower().find("<footer")
 if insert_index == -1:
-    print("❌ Не найден <footer> в {html_content}")
+    print("❌ Не найден <footer> в main.html")
     exit()
 
 # === Читаем CSV ===
 with open(csv_path, newline="", encoding="utf-8") as csvfile:
-    reader = csv.DictReader(csvfile, delimiter=",")
+    reader = csv.DictReader(csvfile, delimiter=',')
     # normalize headers to lowercase
     reader.fieldnames = [h.strip().lower() for h in reader.fieldnames]
 
     for row in reader:
         # normalize each key to lowercase
-        row = {
-            k.strip().lower(): (v.strip() if v is not None else "")
-            for k, v in row.items()
-        }
+        row = {k.strip().lower(): (v.strip() if v is not None else "") for k, v in row.items()}
 
         name = row.get("name", "")
-
-        # --- Получаем seo_name строго из SEO_url ---
-        seo_name = (
-            row.get("seo_url", "")
-            or row.get("SEO_url", "")
-            or row.get("Seo_Url", "")
-            or ""
-        ).strip()
-
         title = row.get("title", "")
         description = row.get("description", "")
         stock = row.get("stock", "")
@@ -76,12 +77,8 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             print(f"⚠️  Пропущен '{name}' — папка '{folder_path}' не найдена.")
             continue
 
-        all_images = [
-            f
-            for f in sorted(os.listdir(folder_path))
-            if os.path.isfile(os.path.join(folder_path, f))
-            and os.path.splitext(f)[1].lower() in valid_exts
-        ]
+        all_images = [f for f in sorted(os.listdir(folder_path))
+                      if os.path.isfile(os.path.join(folder_path, f)) and os.path.splitext(f)[1].lower() in valid_exts]
         if not all_images:
             print(f"⚠️  Пропущен '{name}' — нет изображений.")
             continue
@@ -91,19 +88,16 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
         else:
             images = all_images
 
-        # Удаление существующего блока по id="{seo_name}"
-        start_tag = f'<section class="u-clearfix u-section-16" id="{seo_name}">'
+        # Удаление существующего блока по id="{name}"
+        start_tag = f'<section class="u-clearfix u-section-16" id="{name}">'
         start_pos = html_content.find(start_tag)
         if start_pos != -1:
-            end_tag = "</section>"
             end_pos = html_content.find(end_tag, start_pos)
             if end_pos != -1:
-                html_content = (
-                    html_content[:start_pos] + html_content[end_pos + len(end_tag) :]
-                )
+                html_content = html_content[:start_pos] + html_content[end_pos + len(end_tag):]
                 insert_index = html_content.lower().find("<footer")
 
-        carousel_id = f"carousel-{seo_name[:8]}"
+        carousel_id = f"carousel-{name[:8]}"
         carousel_indicators = ""
         carousel_items = ""
 
@@ -112,7 +106,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             indicator_li = f'<li data-u-target="#{carousel_id}" data-u-slide-to="{i}" class="{active_class} u-grey-70 u-shape-circle" style="width: 10px; height: 10px;"></li>'
             carousel_indicators += "                          " + indicator_li + "\n"
 
-            item_div = f"""\
+            item_div = f'''\
                           <div class="{active_class} u-carousel-item u-gallery-item u-carousel-item-{i+1}" data-image-width="960" data-image-height="1280">
                             <div class="u-back-slide">
                               <img class="u-back-image u-expanded" src="images/{name}/{img_name}">
@@ -123,7 +117,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                             <style data-mode="MD"></style>
                             <style data-mode="SM"></style>
                             <style data-mode="XS"></style>
-                          </div>"""
+                          </div>'''
             carousel_items += item_div + "\n"
 
         # Форматируем stock с <br> и "☀️"
@@ -131,14 +125,10 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             stock_html = "РАСПРОДАНО"
         else:
             stock_lines = [line.strip() for line in stock.splitlines() if line.strip()]
-            stock_html = (
-                "В наличии:<br>" + "<br>".join(f"☀️ {line}" for line in stock_lines)
-                if stock_lines
-                else "В наличии:"
-            )
+            stock_html = "В наличии:<br>" + "<br>".join(f"☀️ {line}" for line in stock_lines) if stock_lines else "В наличии:"
 
         block = f"""
-    <section class="u-clearfix u-section-16" id="{seo_name}">
+    <section class="u-clearfix u-section-16" id="{name}">
       <div class="u-clearfix u-sheet u-valign-middle-md u-valign-top-lg u-valign-top-xl u-sheet-1">
         <div class="data-layout-selected u-clearfix u-expanded-width u-layout-wrap u-layout-wrap-1">
           <div class="u-layout">
@@ -146,7 +136,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
               <div class="u-size-30">
                 <div class="u-layout-col">
                   <div class="u-container-style u-layout-cell u-size-60 u-layout-cell-1">
-                    <div class="u-container-layout u-valign-middle-lg u-valign-middle-sm u-valign-middle-xs u-container-layout-1" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                    <div class="u-container-layout u-valign-middle-lg u-valign-middle-sm u-valign-middle-xs u-container-layout-1">
                       <div class="custom-expanded u-carousel u-gallery u-gallery-slider u-layout-carousel u-lightbox u-no-transition u-show-text-none u-gallery-1" data-interval="5000" data-u-ride="carousel" id="{carousel_id}">
                         <ol class="u-absolute-hcenter u-carousel-indicators u-carousel-indicators-1">
 {carousel_indicators}                        </ol>
@@ -169,19 +159,10 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                 <div class="u-layout-col">
                   <div class="u-container-style u-layout-cell u-size-60 u-layout-cell-2">
                     <div style="display:flex; flex-direction:column; align-items:center;">
-                      <h4 class="u-align-center u-text u-text-1">{title}</h4>
-                      <p class="u-align-center u-text u-text-availability"><b> AR! Примерьте это полотно на свою стену в дополненной реальности через браузер Вашего телефона. <br> Google Chrome (Android) , Safari (iPhone)</b></p>
-<p class="u-align-center u-text u-text-availability">
-  <a href="https://anahartlab.github.io/ar/{seo_name}.html"
-     style="background-color:#4CAF50; color:#000; padding:8px 16px; border-radius:6px; text-decoration:none; display:inline-block;"
-     title="{title}">
-    Посмотреть полотно в AR
-  </a>
-</p>   
+                      <h3 class="u-align-center u-text u-text-1">{title}</h3>
                       <p class="u-align-left u-text u-text-2" style="display:inline-block; text-align:left; max-width:100%;">{description}</p>
                       <p class="u-align-center u-text u-text-availability">{stock_html}</p>
-                      <p class="u-align-center u-text u-text-availability"><a href="https://donate.stream/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Оплатить</a></p>
- 
+                      <a href="https://donate.stream/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Оплатить</a>
                     </div>
                   </div>
                 </div>
@@ -193,16 +174,14 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
     </section>"""
 
         # === Вставка перед <footer> ===
-        html_content = (
-            html_content[:insert_index] + block + "\n" + html_content[insert_index:]
-        )
+        html_content = html_content[:insert_index] + block + "\n" + html_content[insert_index:]
         insert_index += len(block)
 
 # === Сохраняем результат ===
 with open(html_path, "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Все товары из CSV добавлены в {html_content}")
+print("✅ Все товары из CSV добавлены в main.html")
 
 import sys
 

@@ -1,10 +1,22 @@
 from bs4 import BeautifulSoup
 import os
+import csv
 
 # Путь к файлу HTML
-html_file = "/Users/anahart/GitHub/tapestries/tapestries/main.html"
+theway = "fantasy"
+html_file = f"/Users/anahart/GitHub/tapestries/tapestries/{theway}.html"
 # Путь к папке с изображениями товаров
-images_root = "/Users/anahart/GitHub/tapestries/tapestries/images/"
+images_root = f"/Users/anahart/GitHub/tapestries/tapestries/images/"
+
+csv_file = f"/Users/anahart/GitHub/tapestries/tapestries/{theway}.csv"
+csv_map = {}
+with open(csv_file, newline="", encoding="utf-8") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        name = row.get("Name", "").strip()
+        seo = row.get("SEO_url", "").strip()
+        if name and seo:
+            csv_map[name.lower()] = seo
 
 # Читаем HTML
 with open(html_file, "r", encoding="utf-8") as f:
@@ -28,46 +40,41 @@ nav.append(ul)
 
 li_style = "display:flex; align-items:center; gap:12px; padding:10px 15px; box-sizing:border-box; justify-content:flex-start; width:100%; text-align:left;"
 
-for section in soup.find_all("section", class_="u-clearfix u-section-16"):
-    sec_id = section.get("id")
-    h3 = section.find(["h3", "h2", "h1"])
-    if not h3:
-        continue
-    title = h3.get_text(strip=True)
+with open(csv_file, newline="", encoding="utf-8") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        folder_name = row.get("Name", "").strip()
+        sec_id = row.get("SEO_url", "").strip()
+        title = row.get("Title", "").strip()
 
-    # Попытка найти главное изображение
-    folder_name = sec_id  # предполагаем, что id секции = названию папки
-    folder_path = os.path.join(images_root, folder_name)
-    icon_src = None
-    if os.path.exists(folder_path):
-        for file_name in os.listdir(folder_path):
-            if file_name.lower().startswith("main") and file_name.lower().endswith((".jpg", ".jpeg", ".png")):
-                icon_src = f"images/{folder_name}/{file_name}"
-                break
-        if not icon_src:
+        folder_path = os.path.join(images_root, folder_name)
+        icon_src = None
+        if os.path.exists(folder_path):
             for file_name in os.listdir(folder_path):
                 if file_name.lower().endswith((".jpg", ".jpeg", ".png")):
-                    icon_src = f"images/{folder_name}/{file_name}"
+                    icon_src = os.path.join("images", folder_name, file_name).replace(
+                        "\\", "/"
+                    )
                     break
 
-    li = soup.new_tag("li")
-    li["style"] = (
-        li_style + " background-color:#f9f9f9; border-radius:8px; transition:0.3s;"
-    )
-    a = soup.new_tag("a", href=f"#{sec_id}")
-    a["style"] = (
-        "display:flex; align-items:center; text-decoration:none; color:#333; width:100%; "
-        "text-align:left; margin-left:8px; transition:0.3s;"
-    )
-    if icon_src:
-        img = soup.new_tag("img", src=icon_src)
-        img["style"] = "width:50px; height:50px; object-fit:cover; border-radius:5px; margin-right:8px;"
-        a.append(img)
-    span = soup.new_tag("span")
-    span.string = title
-    a.append(span)
-    li.append(a)
-    ul.append(li)
+        li = soup.new_tag("li")
+        li["style"] = li_style
+        a = soup.new_tag("a", href=f"#{sec_id}")
+        a["style"] = (
+            "display:flex; align-items:center; text-decoration:none; color:#333; width:100%; "
+            "text-align:left; margin-left:8px; transition:0.3s;"
+        )
+        if icon_src:
+            img = soup.new_tag("img", src=icon_src)
+            img["style"] = (
+                "width:50px; height:50px; object-fit:cover; border-radius:5px; margin-right:8px;"
+            )
+            a.append(img)
+        span = soup.new_tag("span")
+        span.string = title
+        a.append(span)
+        li.append(a)
+        ul.append(li)
 
 header = soup.find("header")
 if header:
