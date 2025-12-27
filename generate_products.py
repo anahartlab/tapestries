@@ -8,7 +8,7 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 os.chdir(repo_root)
 
 # === Параметры ===
-theway = "popart"
+theway = "abstract"
 csv_path = f"{theway}.csv"
 html_path = f"{theway}.html"
 images_dir = "images"
