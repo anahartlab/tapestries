@@ -8,7 +8,7 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 os.chdir(repo_root)
 
 # === Параметры ===
-theway = "eng_africa"
+theway = "eng_kz"
 csv_path = f"{theway}.csv"
 html_path = f"{theway}.html"
 images_dir = "images"
@@ -170,7 +170,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                   <div class="u-container-style u-layout-cell u-size-60 u-layout-cell-2">
                     <div style="display:flex; flex-direction:column; align-items:center;">
                       <h4 class="u-align-center u-text u-text-1">{title}</h4>
-                      <p class="u-align-center u-text u-text-availability"><b> AR! Примерьте это полотно на свою стену в дополненной реальности через браузер Вашего телефона. <br> Google Chrome (Android) , Safari (iPhone)</b></p>
+                      <p class="u-align-center u-text u-text-availability"><b>View this tapestry in AR (augmented reality). <br> Google Chrome (Android) , Safari (iPhone)</b></p>
 <p class="u-align-center u-text u-text-availability">
   <a href="https://anahartlab.github.io/ar/{seo_name}.html"
      style="background-color:#4CAF50; color:#000; padding:8px 16px; border-radius:6px; text-decoration:none; display:inline-block;"
