@@ -4,7 +4,6 @@
 # eng_editor.py
 
 import os
-import re
 
 
 def get_folder():
@@ -15,17 +14,15 @@ def process_file(path):
     with open(path, "r", encoding="utf-8") as f:
         txt = f.read()
 
-    # Replace AR links:
-    # https://anahartlab.github.io/ar/name.html -> https://anahartlab.github.io/ar/eng_name.html
-    def repl(match):
-        name = match.group(1)
-        return f'href="https://anahartlab.github.io/ar/eng_{name}.html"'
+    # 1. Replace availability text
+    txt = txt.replace("В наличии", "In Stock")
 
-    txt = re.sub(
-        r'href="https://anahartlab\.github\.io/ar/([^"]+)\.html"',
-        repl,
-        txt
-    )
+    # 2. Replace Contact button block (donate.stream -> telegram)
+    old_block = '''<p class="u-align-center u-text u-text-availability"><a  class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" href="https://donate.stream/anahart" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Contact</a></p>'''
+
+    new_block = '''<p class="u-align-center u-text u-text-availability"><a  class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" href="https://t.me/anahart" style="border-radius: 100px;" title="Telegram">Contact</a></p>'''
+
+    txt = txt.replace(old_block, new_block)
 
     with open(path, "w", encoding="utf-8") as f:
         f.write(txt)
