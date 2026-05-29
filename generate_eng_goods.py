@@ -172,10 +172,10 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
                       <h4 class="u-align-center u-text u-text-1">{title}</h4>
                       <p class="u-align-center u-text u-text-availability"><b>View this tapestry in AR (augmented reality). <br> Google Chrome (Android) , Safari (iPhone)</b></p>
 <p class="u-align-center u-text u-text-availability">
-  <a href="https://anahartlab.github.io/ar/{seo_name}.html"
+  <a href="https://anahartlab.github.io/ar/eng_{seo_name}.html"
      style="background-color:#4CAF50; color:#000; padding:8px 16px; border-radius:6px; text-decoration:none; display:inline-block;"
      title="{title}">
-    Посмотреть полотно в AR
+    View in AR with your phone
   </a>
 </p>   
                       <p class="u-align-left u-text u-text-2" style="display:inline-block; text-align:left; max-width:100%;">{description}</p>
