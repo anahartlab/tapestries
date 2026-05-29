@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/env python3
 # eng_editor.py
 
@@ -13,18 +15,17 @@ def process_file(path):
     with open(path, "r", encoding="utf-8") as f:
         txt = f.read()
 
-    # 1. replace UI text
-    txt = txt.replace(
-        "Посмотреть полотно в AR",
-        "View in AR on phone"
-    )
-
-    # 2. fix AR links: ar/name.html -> ar/eng_name.html
+    # Replace AR links:
+    # https://anahartlab.github.io/ar/name.html -> https://anahartlab.github.io/ar/eng_name.html
     def repl(match):
         name = match.group(1)
-        return f"href=\"ar/eng_{name}.html\""
+        return f'href="https://anahartlab.github.io/ar/eng_{name}.html"'
 
-    txt = re.sub(r"href=\"ar/([^\"]+)\.html\"", repl, txt)
+    txt = re.sub(
+        r'href="https://anahartlab\.github\.io/ar/([^"]+)\.html"',
+        repl,
+        txt
+    )
 
     with open(path, "w", encoding="utf-8") as f:
         f.write(txt)
@@ -43,7 +44,7 @@ def main():
     ]
 
     if not files:
-        print("No files found")
+        print("No eng_*.html files found")
         return
 
     for f in files:
