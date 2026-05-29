@@ -4,8 +4,8 @@
 import os, re, shutil, datetime
 
 HTML_DIR = "."
-HEADER_FILE = "header.txt"
-FOOTER_FILE = "footer.txt"
+HEADER_FILE = "eng_header.txt"
+FOOTER_FILE = "eng_footer.txt"
 BACKUP_SUFFIX = ".bak"
 
 
