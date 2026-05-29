@@ -19,12 +19,12 @@ def process_file(path):
         "View in AR on phone"
     )
 
-    # 2. fix AR links: tapestries/name.html -> tapestries/eng_name.html
+    # 2. fix AR links: ar/name.html -> ar/eng_name.html
     def repl(match):
         name = match.group(1)
-        return f"href=\"tapestries/eng_{name}.html\""
+        return f"href=\"ar/eng_{name}.html\""
 
-    txt = re.sub(r"href=\"tapestries/([^\"]+)\.html\"", repl, txt)
+    txt = re.sub(r"href=\"ar/([^\"]+)\.html\"", repl, txt)
 
     with open(path, "w", encoding="utf-8") as f:
         f.write(txt)
