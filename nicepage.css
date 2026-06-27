@@ -32747,8 +32747,11 @@ h6 {
 
 .u-body {
   color: #111111;
-  background-color: #ffffff;
+  background-color: #eeeeee;
   --effect-scale: 1.1;
+
+  background-image: url("images/pttrnbody.png");
+  background-repeat: repeat;
 }
 
 /*end-variables color*/
@@ -54569,7 +54572,10 @@ blockquote {
 
 /*end-variables sitestylecss*/
 .u-header {
-  background-image: none;
+
+  background-image: url("images/pttrn.png");
+
+  background-repeat: repeat;
 }
 
 .u-header .u-sheet-1 {
@@ -54643,7 +54649,11 @@ blockquote {
 }
 
 .u-footer {
-  background-image: none;
+
+  background-image: url("images/pttrnfooter.png");
+
+  background-repeat: repeat;
+
 }
 
 .u-footer .u-sheet-1 {
