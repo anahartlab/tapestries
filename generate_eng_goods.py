@@ -8,7 +8,7 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 os.chdir(repo_root)
 
 # === Параметры ===
-theway = "eng_kz"
+theway = "eng_africa"
 csv_path = f"{theway}.csv"
 html_path = f"{theway}.html"
 images_dir = "images"
@@ -146,13 +146,13 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
 
         # Форматируем stock с <br> и "☀️"
         if not stock.strip():
-            stock_html = "РАСПРОДАНО"
+            stock_html = "SOLD OUT"
         else:
             stock_lines = [line.strip() for line in stock.splitlines() if line.strip()]
             stock_html = (
-                "В наличии:<br>" + "<br>".join(f"☀️ {line}" for line in stock_lines)
+                "In Stock:<br>" + "<br>".join(f"☀️ {line}" for line in stock_lines)
                 if stock_lines
-                else "В наличии:"
+                else "In Stock:"
             )
 
         block = f"""
@@ -198,7 +198,7 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
 </p>   
                       <p class="u-align-left u-text u-text-2" style="display:inline-block; text-align:left; max-width:100%;">{description}</p>
                       <p class="u-align-center u-text u-text-availability">{stock_html}</p>
-                      <p class="u-align-center u-text u-text-availability"><a href="https://donate.stream/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="Укажите нужную сумму и наименование товара в комментарии к донату">Оплатить</a></p>
+                      <p class="u-align-center u-text u-text-availability"><a href="https://t.me/anahart" class="u-btn u-button-style u-custom-font u-heading-font u-hover-palette-1-light-1 u-palette-1-base u-radius-50 u-btn-1" style="border-radius: 100px;" title="If you wanna buy it text me in Telegram.">DM me in Telegram</a></p>
  
                     </div>
                   </div>
