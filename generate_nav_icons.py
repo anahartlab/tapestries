@@ -3,7 +3,7 @@ import os
 import csv
 
 # Путь к файлу HTML
-theway = "eng_kz"
+theway = "fantasy"
 html_file = f"/Users/anahart/GitHub/tapestries/tapestries/{theway}.html"
 # Путь к папке с изображениями товаров
 images_root = f"/Users/anahart/GitHub/tapestries/tapestries/images/"
@@ -50,12 +50,21 @@ with open(csv_file, newline="", encoding="utf-8") as f:
         folder_path = os.path.join(images_root, folder_name)
         icon_src = None
         if os.path.exists(folder_path):
-            for file_name in os.listdir(folder_path):
-                if file_name.lower().endswith((".jpg", ".jpeg", ".png")):
-                    icon_src = os.path.join("images", folder_name, file_name).replace(
-                        "\\", "/"
-                    )
-                    break
+            image_files = sorted(
+                f
+                for f in os.listdir(folder_path)
+                if f.lower().endswith((".jpg", ".jpeg", ".png"))
+            )
+
+            if image_files:
+                selected = next(
+                    (f for f in image_files if f.lower() in ("main.jpg", "main.jpeg")),
+                    image_files[0],
+                )
+
+                icon_src = os.path.join("images", folder_name, selected).replace(
+                    "\\", "/"
+                )
 
         li = soup.new_tag("li")
         li["style"] = li_style
