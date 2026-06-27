@@ -8,7 +8,7 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 os.chdir(repo_root)
 
 # === Параметры ===
-theway = "eng_africa"
+theway = "fantasy"
 csv_path = f"{theway}.csv"
 html_path = f"{theway}.html"
 images_dir = "images"
@@ -82,14 +82,33 @@ with open(csv_path, newline="", encoding="utf-8") as csvfile:
             if os.path.isfile(os.path.join(folder_path, f))
             and os.path.splitext(f)[1].lower() in valid_exts
         ]
+
         if not all_images:
             print(f"⚠️  Пропущен '{name}' — нет изображений.")
             continue
 
-        if len(all_images) > 5:
-            images = random.sample(all_images, 5)
+        # Если есть main.jpg или main.jpeg — оно всегда первое
+        main_image = None
+        for img in all_images:
+            if img.lower() in ("main.jpg", "main.jpeg"):
+                main_image = img
+                break
+
+        if main_image:
+            remaining = [img for img in all_images if img != main_image]
+
+            if len(remaining) > 7:
+                remaining = random.sample(remaining, 7)
+
+            images = [main_image] + remaining
         else:
-            images = all_images
+            # Если main нет — первая картинка остается первой
+            if len(all_images) > 8:
+                first = all_images[0]
+                remaining = random.sample(all_images[1:], 7)
+                images = [first] + remaining
+            else:
+                images = all_images
 
         # Удаление существующего блока по id="{seo_name}"
         start_tag = f'<section class="u-clearfix u-section-16" id="{seo_name}">'

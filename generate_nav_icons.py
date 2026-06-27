@@ -3,7 +3,7 @@ import os
 import csv
 
 # Путь к файлу HTML
-theway = "eng_kz"
+theway = "fantasy"
 html_file = f"/Users/anahart/GitHub/tapestries/tapestries/{theway}.html"
 # Путь к папке с изображениями товаров
 images_root = f"/Users/anahart/GitHub/tapestries/tapestries/images/"
